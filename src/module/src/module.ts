@@ -13,6 +13,8 @@ import type { GitProviderAPI } from 'nuxt-studio/app'
 
 const logger = useLogger('nuxt-studio')
 
+const NULL_PROVIDER = 'null'
+
 const customProviderMethods = [
   'fetchFile',
   'commitFiles',
@@ -41,8 +43,8 @@ function getCustomProviderInfo(provider: GitProviderAPI) {
 function serializeCustomProvider(provider: GitProviderAPI): string {
   const serializedMethods = customProviderMethods
     .map((method) => {
-      const fn = provider[method as keyof GitProviderAPI] as unknown as Function
-      return `${method}: ${fn.toString()}`
+      const providerMethod = provider[method as keyof GitProviderAPI] as unknown as Function
+      return `${method}: ${providerMethod.toString()}`
     })
     .join(',\n  ')
 
@@ -394,7 +396,7 @@ export default defineNuxtModule<ModuleOptions>({
     addTemplate({
       filename: 'studio-custom-provider.mjs',
       getContents: () => {
-        const exportValue = customProvider ? serializeCustomProvider(customProvider) : 'null'
+        const exportValue = customProvider ? serializeCustomProvider(customProvider) : NULL_PROVIDER
         return `export const customProvider = ${exportValue}`
       },
     })
