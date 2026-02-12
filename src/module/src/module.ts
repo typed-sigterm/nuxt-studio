@@ -14,7 +14,7 @@ import { CUSTOM_PROVIDER_NAME } from './constants'
 
 const logger = useLogger('nuxt-studio')
 
-const TEMPLATE_NULL_VALUE = 'null'
+const TEMPLATE_NULL_STRING = 'null'
 
 const customProviderMethods = [
   'fetchFile',
@@ -397,7 +397,7 @@ export default defineNuxtModule<ModuleOptions>({
     addTemplate({
       filename: 'studio-custom-provider.mjs',
       getContents: () => {
-        const exportValue = customProvider ? serializeCustomProvider(customProvider) : TEMPLATE_NULL_VALUE
+        const exportValue = customProvider ? serializeCustomProvider(customProvider) : TEMPLATE_NULL_STRING
         return `export const customProvider = ${exportValue}`
       },
     })
