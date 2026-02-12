@@ -9,8 +9,45 @@ import { getAssetsStorageDevTemplate, getAssetsStorageTemplate } from './templat
 import { version } from '../../../package.json'
 import { setupDevMode } from './dev'
 import { validateAuthConfig } from './auth'
+import type { GitProviderAPI, GitProviderType } from 'nuxt-studio/app'
 
 const logger = useLogger('nuxt-studio')
+
+const customProviderMethods = [
+  'fetchFile',
+  'commitFiles',
+  'getRepositoryUrl',
+  'getBranchUrl',
+  'getCommitUrl',
+  'getFileUrl',
+  'getRepositoryInfo',
+] as const
+
+function isGitProviderAPI(provider: unknown): provider is GitProviderAPI {
+  return !!provider
+    && typeof provider === 'object'
+    && customProviderMethods.every(method => typeof (provider as GitProviderAPI)[method] === 'function')
+}
+
+function getCustomProviderInfo(provider: GitProviderAPI) {
+  try {
+    return provider.getRepositoryInfo()
+  }
+  catch {
+    return null
+  }
+}
+
+function serializeCustomProvider(provider: GitProviderAPI): string {
+  const serializedMethods = customProviderMethods
+    .map((method) => {
+      const fn = provider[method as keyof GitProviderAPI] as unknown as Function
+      return `${method}: ${fn.toString()}`
+    })
+    .join(',\n  ')
+
+  return `({\n  ${serializedMethods}\n})`
+}
 
 interface MetaOptions {
   /**
@@ -69,6 +106,10 @@ interface GitHubRepositoryOptions extends RepositoryOptions {
 interface GitLabRepositoryOptions extends RepositoryOptions {
   provider: 'gitlab'
   instanceUrl?: string
+}
+
+interface CustomRepositoryOptions extends RepositoryOptions {
+  provider: GitProviderAPI
 }
 
 export interface ModuleOptions {
@@ -224,7 +265,7 @@ export interface ModuleOptions {
   /**
    * The git repository information to connect to.
    */
-  repository?: GitHubRepositoryOptions | GitLabRepositoryOptions
+  repository?: GitHubRepositoryOptions | GitLabRepositoryOptions | CustomRepositoryOptions
   /**
    * Enable Nuxt Studio to edit content and media files on your filesystem.
    */
@@ -332,9 +373,38 @@ export default defineNuxtModule<ModuleOptions>({
       options.dev = false
     }
 
+    const rawProvider = options.repository?.provider
+    const hasCustomProviderConfig = rawProvider && typeof rawProvider === 'object'
+    if (hasCustomProviderConfig && !isGitProviderAPI(rawProvider)) {
+      throw new Error(`Custom Git provider must implement: ${customProviderMethods.join(', ')}`)
+    }
+
+    const customProvider = isGitProviderAPI(rawProvider) ? rawProvider : null
+    const customProviderInfo = customProvider ? getCustomProviderInfo(customProvider) : null
+    if (customProvider) {
+      const providerType: GitProviderType = customProviderInfo?.provider && customProviderInfo.provider !== null
+        ? customProviderInfo.provider
+        : 'custom'
+
+      options.repository = {
+        ...options.repository,
+        provider: providerType,
+        owner: options.repository?.owner || customProviderInfo?.owner || '',
+        repo: options.repository?.repo || customProviderInfo?.repo || '',
+        branch: options.repository?.branch || customProviderInfo?.branch || 'main',
+      } as ModuleOptions['repository']
+    }
+
+    addTemplate({
+      filename: 'studio-custom-provider.mjs',
+      getContents: () => customProvider
+        ? `export const customProvider = ${serializeCustomProvider(customProvider)}\nexport default customProvider`
+        : 'export const customProvider = null\nexport default customProvider',
+    })
+
     // Auto-detect repository from CI environment variables when not explicitly configured
     const isProdBuild = nuxt.options.dev === false && nuxt.options._prepare === false
-    if (isProdBuild && !options.repository?.owner && !options.repository?.repo) {
+    if (isProdBuild && !customProvider && !options.repository?.owner && !options.repository?.repo) {
       const detected = detectRepositoryFromCI()
       if (detected) {
         options.repository = defu(detected, options.repository) as GitHubRepositoryOptions | GitLabRepositoryOptions

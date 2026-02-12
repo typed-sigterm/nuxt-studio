@@ -32,6 +32,7 @@ export const useStudio = createSharedComposable(() => {
     token: host.user.get().accessToken,
     authorName: host.user.get().name,
     authorEmail: host.user.get().email,
+    customProvider: host.repository.customProvider,
     instanceUrl: host.repository.instanceUrl,
   }
 

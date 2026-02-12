@@ -2,12 +2,16 @@ import { defineNuxtPlugin, useRuntimeConfig } from '#imports'
 import { consola } from 'consola'
 import { defineStudioActivationPlugin } from '../utils/activation'
 import type { Repository, UseStudioHost } from 'nuxt-studio/app'
+import { customProvider } from '#build/studio-custom-provider'
 
 const logger = consola.withTag('Nuxt Studio')
 
 export default defineNuxtPlugin(() => {
   defineStudioActivationPlugin(async (user) => {
     const config = useRuntimeConfig()
+    const repository = customProvider
+      ? { ...config.public.studio.repository, customProvider }
+      : config.public.studio.repository
     logger.info(`
   ███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗     ██████╗ ███████╗██╗   ██╗
   ██╔════╝╚══██╔══╝██║   ██║██╔══██╗██║██╔═══██╗    ██╔══██╗██╔════╝██║   ██║
@@ -19,7 +23,7 @@ export default defineNuxtPlugin(() => {
 
     // Initialize host
     const host = await import('../host.dev').then(m => m.useStudioHost);
-    (window as unknown as { useStudioHost: UseStudioHost }).useStudioHost = () => host(user, config.public.studio.repository as unknown as Repository)
+    (window as unknown as { useStudioHost: UseStudioHost }).useStudioHost = () => host(user, repository as unknown as Repository)
 
     const el = document.createElement('script')
     el.src = `${config.public.studio?.development?.server}/src/main.ts`

@@ -150,7 +150,7 @@ export default eventHandler(async (event: H3Event) => {
   let repositoryToken: string | undefined
 
   // Try to use the GitHub token from SSO if available (users who logged in with GitHub on SSO server)
-  if (provider === 'github' && user.github_token) {
+  if ((provider === 'github' || provider === 'custom') && user.github_token) {
     repositoryToken = user.github_token
   }
   // Fall back to environment variable
@@ -159,6 +159,9 @@ export default eventHandler(async (event: H3Event) => {
   }
   else if (provider === 'gitlab') {
     repositoryToken = process.env.STUDIO_GITLAB_TOKEN
+  }
+  else if (provider === 'custom') {
+    repositoryToken = process.env.STUDIO_GITHUB_TOKEN || process.env.STUDIO_GITLAB_TOKEN || ''
   }
 
   // Validate that we have a token

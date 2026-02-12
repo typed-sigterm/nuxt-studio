@@ -1,7 +1,7 @@
 import type { DraftStatus } from './draft'
 import type { StudioFeature } from '../types'
 
-export type GitProviderType = 'github' | 'gitlab'
+export type GitProviderType = 'github' | 'gitlab' | 'custom'
 
 export interface Repository {
   provider: GitProviderType | null
@@ -9,6 +9,7 @@ export interface Repository {
   repo: string
   branch: string
   rootDir: string
+  customProvider?: GitProviderAPI
   /**
    * Can be used to specify the instance URL for self-hosted GitLab instances.
    * @default 'https://gitlab.com'
@@ -28,6 +29,7 @@ export interface GitOptions extends GitBaseOptions {
   provider: GitProviderType | null
   rootDir: string
   token: string
+  customProvider?: GitProviderAPI
   instanceUrl?: string
 }
 

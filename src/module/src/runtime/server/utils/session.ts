@@ -22,9 +22,9 @@ export async function setStudioUserSession(event: H3Event, userSession: StudioUs
       ? process.env.STUDIO_GITHUB_TOKEN
       : provider === 'gitlab'
         ? process.env.STUDIO_GITLAB_TOKEN
-        : null
+        : process.env.STUDIO_GITHUB_TOKEN || process.env.STUDIO_GITLAB_TOKEN || ''
 
-  if (!accessToken) {
+  if (!accessToken && provider !== 'custom') {
     throw createError({
       statusCode: 500,
       statusMessage: `Missing access token for ${provider} Git provider`,

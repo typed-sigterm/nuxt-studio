@@ -152,7 +152,9 @@ export default eventHandler(async (event: H3Event) => {
 
   const repositoryToken = provider === 'github'
     ? process.env.STUDIO_GITHUB_TOKEN
-    : process.env.STUDIO_GITLAB_TOKEN
+    : provider === 'gitlab'
+      ? process.env.STUDIO_GITLAB_TOKEN
+      : process.env.STUDIO_GITHUB_TOKEN || process.env.STUDIO_GITLAB_TOKEN || ''
 
   const token = await requestAccessToken(config.tokenURL as string, {
     body: {
