@@ -382,9 +382,7 @@ export default defineNuxtModule<ModuleOptions>({
     const customProvider = isGitProviderAPI(rawProvider) ? rawProvider : null
     const customProviderInfo = customProvider ? getCustomProviderInfo(customProvider) : null
     if (customProvider) {
-      const providerType: GitProviderType = customProviderInfo?.provider && customProviderInfo.provider !== null
-        ? customProviderInfo.provider
-        : 'custom'
+      const providerType: GitProviderType = customProviderInfo?.provider || 'custom'
 
       options.repository = {
         ...options.repository,

@@ -22,7 +22,7 @@ export async function setStudioUserSession(event: H3Event, userSession: StudioUs
       ? process.env.STUDIO_GITHUB_TOKEN
       : provider === 'gitlab'
         ? process.env.STUDIO_GITLAB_TOKEN
-        : process.env.STUDIO_GITHUB_TOKEN || process.env.STUDIO_GITLAB_TOKEN || ''
+        : ''
 
   if (!accessToken && provider !== 'custom') {
     throw createError({
