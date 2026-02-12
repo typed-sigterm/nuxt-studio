@@ -10,10 +10,11 @@ import { version } from '../../../package.json'
 import { setupDevMode } from './dev'
 import { validateAuthConfig } from './auth'
 import type { GitProviderAPI } from 'nuxt-studio/app'
+import { CUSTOM_PROVIDER_NAME } from './constants'
 
 const logger = useLogger('nuxt-studio')
 
-const SERIALIZED_NULL_PROVIDER = 'null'
+const SERIALIZED_NULL_LITERAL = 'null'
 
 const customProviderMethods = [
   'fetchFile',
@@ -386,7 +387,7 @@ export default defineNuxtModule<ModuleOptions>({
     if (customProvider) {
       options.repository = {
         ...options.repository,
-        provider: customProviderInfo?.provider || 'custom',
+        provider: customProviderInfo?.provider || CUSTOM_PROVIDER_NAME,
         owner: options.repository?.owner || customProviderInfo?.owner || '',
         repo: options.repository?.repo || customProviderInfo?.repo || '',
         branch: options.repository?.branch || customProviderInfo?.branch || 'main',
@@ -396,7 +397,7 @@ export default defineNuxtModule<ModuleOptions>({
     addTemplate({
       filename: 'studio-custom-provider.mjs',
       getContents: () => {
-        const exportValue = customProvider ? serializeCustomProvider(customProvider) : SERIALIZED_NULL_PROVIDER
+        const exportValue = customProvider ? serializeCustomProvider(customProvider) : SERIALIZED_NULL_LITERAL
         return `export const customProvider = ${exportValue}`
       },
     })

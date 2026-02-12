@@ -1,10 +1,11 @@
 import { useLogger } from '@nuxt/kit'
 import type { ModuleOptions } from './module'
+import { CUSTOM_PROVIDER_NAME } from './constants'
 
 const logger = useLogger('Nuxt Studio')
 
 export function validateAuthConfig(options: ModuleOptions): void {
-  const provider = typeof options.repository?.provider === 'string' ? options.repository?.provider : 'custom'
+  const provider = typeof options.repository?.provider === 'string' ? options.repository?.provider : CUSTOM_PROVIDER_NAME
   const providerUpperCase = provider.toUpperCase()
 
   // Git Token is enough for custom authentication
