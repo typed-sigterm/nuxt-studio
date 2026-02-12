@@ -9,7 +9,7 @@ import { getAssetsStorageDevTemplate, getAssetsStorageTemplate } from './templat
 import { version } from '../../../package.json'
 import { setupDevMode } from './dev'
 import { validateAuthConfig } from './auth'
-import type { GitProviderAPI, GitProviderType } from 'nuxt-studio/app'
+import type { GitProviderAPI } from 'nuxt-studio/app'
 
 const logger = useLogger('nuxt-studio')
 
@@ -382,11 +382,9 @@ export default defineNuxtModule<ModuleOptions>({
     const customProvider = isGitProviderAPI(rawProvider) ? rawProvider : null
     const customProviderInfo = customProvider ? getCustomProviderInfo(customProvider) : null
     if (customProvider) {
-      const providerType: GitProviderType = customProviderInfo?.provider || 'custom'
-
       options.repository = {
         ...options.repository,
-        provider: providerType,
+        provider: customProviderInfo?.provider || 'custom',
         owner: options.repository?.owner || customProviderInfo?.owner || '',
         repo: options.repository?.repo || customProviderInfo?.repo || '',
         branch: options.repository?.branch || customProviderInfo?.branch || 'main',
@@ -395,9 +393,10 @@ export default defineNuxtModule<ModuleOptions>({
 
     addTemplate({
       filename: 'studio-custom-provider.mjs',
-      getContents: () => customProvider
-        ? `export const customProvider = ${serializeCustomProvider(customProvider)}\nexport default customProvider`
-        : 'export const customProvider = null\nexport default customProvider',
+      getContents: () => {
+        const exportValue = customProvider ? serializeCustomProvider(customProvider) : 'null'
+        return `export const customProvider = ${exportValue}\nexport default customProvider`
+      },
     })
 
     // Auto-detect repository from CI environment variables when not explicitly configured
