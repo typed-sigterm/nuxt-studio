@@ -395,7 +395,7 @@ export default defineNuxtModule<ModuleOptions>({
       filename: 'studio-custom-provider.mjs',
       getContents: () => {
         const exportValue = customProvider ? serializeCustomProvider(customProvider) : 'null'
-        return `export const customProvider = ${exportValue}\nexport default customProvider`
+        return `export const customProvider = ${exportValue}`
       },
     })
 
